@@ -1,26 +1,23 @@
 package com.perasia.gameplay;
 
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.perasia.gameplay.download2.DownloadManager;
 
-import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,9 +29,18 @@ public class MainActivity extends AppCompatActivity {
 
     private WebView mWebView;
 
+    private ProgressBar mProgressBar;
+
     private ImageView mImageView;
 
     private Button mBtn;
+
+    private String mUrl;
+
+    private boolean isWebLoaded = false;
+
+    private int mCount;
+    private long mLastTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
         mWebView = (WebView) findViewById(R.id.main_webview);
         mImageView = (ImageView) findViewById(R.id.main_iv);
         mBtn = (Button) findViewById(R.id.main_btn);
+        mProgressBar = (ProgressBar) findViewById(R.id.webProgress_pb);
+
+        mUrl = "http://192.168.5.110:8080/bunengsi/index.html";
 
         init();
     }
@@ -52,38 +61,42 @@ public class MainActivity extends AppCompatActivity {
     private void init() {
         mActionBar = getSupportActionBar();
         if (mActionBar != null) {
-            mActionBar.setTitle("游戏");
+            mActionBar.setTitle(R.string.action_title);
         }
 
         WebViewUtil.getInstance(mContext, mWebView, new WebViewCallBack() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                Log.e(TAG, "shouldOverrideUrlLoading");
                 return false;
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
-                Log.e(TAG, "onPageFinished");
             }
 
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                Log.e(TAG, "onPageStarted");
             }
 
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
-                Log.e(TAG, "onProgressChanged");
+                if (newProgress == 100) {
+                    mProgressBar.setVisibility(View.GONE);
+                    isWebLoaded = true;
+                } else {
+                    mProgressBar.setVisibility(View.VISIBLE);
+                    mProgressBar.setProgress(newProgress);
+                    isWebLoaded = false;
+                }
             }
 
             @Override
             public void onReceivedTitle(WebView view, String title) {
-                Log.e(TAG, "onReceivedTitle");
+
             }
         });
 
-        mWebView.loadUrl("http://www.baidu.com");
+        mWebView.loadUrl(mUrl);
 
 //        PushUtils.init(mContext, R.mipmap.ic_launcher);
 //        JiAdUtil.init(mContext, mImageView);
@@ -92,33 +105,29 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 final String savePath;
-                if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
-                        || !Environment.isExternalStorageRemovable()) {
-                    savePath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "name" + ".apk";
-                } else {
-                    savePath = mContext.getCacheDir().getPath() + "name" + ".apk";
-                }
 
-                DownloadManager.download("http://jsp.dx1200.com/apk/2016/dyj_311_3.0.0.apk", 5, savePath, new DownloadManager.DownloadCallBack() {
+                String url = "http://jsp.dx1200.com/apk/2016/dyj_311_3.0.0.apk";
+
+                savePath = CommonUtil.getDownloadSavePath(mContext, url);
+
+                DownloadManager.getInstance().execute(url, 5, savePath, new DownloadManager.DownloadCallBack() {
                     @Override
                     public void onStart(int fileSize) {
                         Log.e(TAG, "onStart=" + fileSize);
-                        if (isFileExist(savePath)) {
-                            deleteMyFile(savePath);
+                        if (CommonUtil.isFileExist(savePath)) {
+                            CommonUtil.deleteFile(savePath);
                         }
                     }
 
                     @Override
                     public void onLoading(int fileSize, int downloadSize) {
-//                        Log.e(TAG, "filesize+downloadsize=" + fileSize + "--" + downloadSize);
-
                         Log.e(TAG, "onLoading=" + (downloadSize * 100 / fileSize) + "%");
                     }
 
                     @Override
                     public void onFinished() {
                         Log.e(TAG, "onFinished=");
-                        installApk(mContext, savePath);
+                        CommonUtil.installApk(mContext, savePath);
                     }
                 });
             }
@@ -181,60 +190,40 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
 
+        if (id == R.id.action_refresh) {
+            if (isWebLoaded) {
+                mWebView.loadUrl(mUrl);
+            } else {
+                mWebView.stopLoading();
+            }
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            long curTime = System.currentTimeMillis();
+            if (mLastTime + 2000 > curTime) {
+                mCount += 1;
+            } else {
+                mCount = 1;
+            }
+            mLastTime = curTime;
 
-    public void installApk(Context context, String filePath) {
-        if (context == null || TextUtils.isEmpty(filePath)) {
-            return;
+            if (mCount < 2) {
+                Toast.makeText(mContext, R.string.main_back_exit, Toast.LENGTH_SHORT).show();
+                return false;
+            }
+
+            if (mCount >= 2) {
+                return super.onKeyDown(keyCode, event);
+            }
         }
 
-        if (!checkAppPackage(context, filePath)) {
-            return;
-        }
-
-        try {
-            Intent intent = new Intent();
-            intent.setAction("android.intent.action.VIEW");
-            intent.addCategory("android.intent.category.DEFAULT");
-            intent.setDataAndType(Uri.fromFile(new File(filePath)), "application/vnd.android.package-archive");
-            context.startActivity(intent);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private boolean checkAppPackage(Context context, String filePath) {
-        if (context == null || TextUtils.isEmpty(filePath)) {
-            return false;
-        }
-
-        boolean result = true;
-        try {
-            context.getPackageManager().getPackageArchiveInfo(filePath, PackageManager.GET_ACTIVITIES);
-        } catch (Exception e) {
-            deleteFile(filePath);
-            result = false;
-        }
-
-        return result;
-    }
-
-    private boolean isFileExist(String fileName) {
-        if (TextUtils.isEmpty(fileName)) {
-            return false;
-        }
-        File file = new File(fileName);
-        return file.exists();
-    }
-
-    private void deleteMyFile(String filePath) {
-        if (TextUtils.isEmpty(filePath)) {
-            return;
-        }
-        File file = new File(filePath);
-        file.delete();
+        return false;
     }
 
 }

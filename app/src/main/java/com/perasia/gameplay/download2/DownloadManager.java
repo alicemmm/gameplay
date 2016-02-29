@@ -4,8 +4,11 @@ package com.perasia.gameplay.download2;
 import android.util.Log;
 
 import java.io.File;
+import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DownloadManager {
     private static final String TAG = DownloadManager.class.getSimpleName();
@@ -22,18 +25,32 @@ public class DownloadManager {
 
     private static DownloadManager downloadManager;
 
-    private DownloadManager(String downloadUrl, int threadNum, String filePath, DownloadCallBack callBack) {
-        this.callBack = callBack;
-        DownloadTask task = new DownloadTask(downloadUrl, threadNum, filePath);
-        task.start();
+    private static List<String> lists = new ArrayList<>();
+
+
+    private DownloadManager() {
+
     }
 
-    public static DownloadManager download(String downloadUrl, int threadNum, String filepath, DownloadCallBack callBack) {
+    public static DownloadManager getInstance() {
         if (downloadManager == null) {
-            downloadManager = new DownloadManager(downloadUrl, threadNum, filepath, callBack);
+            downloadManager = new DownloadManager();
         }
 
         return downloadManager;
+    }
+
+    public void execute(String downloadUrl, int threadNum, String filePath, DownloadCallBack callBack) {
+        if (lists.contains(filePath)) {
+            Log.e(TAG, "downloading");
+            return;
+        }
+
+        lists.add(filePath);
+
+        this.callBack = callBack;
+        DownloadTask task = new DownloadTask(downloadUrl, threadNum, filePath);
+        task.start();
     }
 
     private class DownloadTask extends Thread {
@@ -51,9 +68,11 @@ public class DownloadManager {
         @Override
         public void run() {
             DownloadThread[] threads = new DownloadThread[threadNum];
+            HttpURLConnection conn = null;
             try {
                 URL url = new URL(downloadUrl);
-                HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setConnectTimeout(5 * 1000);
                 int fileSize = conn.getContentLength();
                 if (fileSize <= 0) {
                     Log.e(TAG, "read file failed");
@@ -63,6 +82,10 @@ public class DownloadManager {
                 if (callBack != null) {
                     callBack.onStart(fileSize);
                 }
+
+                RandomAccessFile accessFile = new RandomAccessFile(filePath, "rwd");
+                accessFile.setLength(fileSize);
+                accessFile.close();
 
                 //get file max size
                 blockSize = (fileSize % threadNum) == 0 ? fileSize / threadNum : fileSize / threadNum + 1;
@@ -100,6 +123,8 @@ public class DownloadManager {
                 Log.e(TAG, " all of downloadSize:" + downloadAllSize);
 
                 if (downloadAllSize == fileSize) {
+                    lists.remove(filePath);
+
                     if (callBack != null) {
                         callBack.onFinished();
                     }
@@ -107,6 +132,10 @@ public class DownloadManager {
 
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
             }
         }
     }

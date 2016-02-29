@@ -38,10 +38,12 @@ public class DownloadThread extends Thread {
 
         RandomAccessFile raf = null;
 
-        try {
-            HttpURLConnection conn = (HttpURLConnection)downloadUrl.openConnection();
-            conn.setAllowUserInteraction(true);
+        HttpURLConnection conn = null;
 
+        try {
+            conn = (HttpURLConnection) downloadUrl.openConnection();
+            conn.setAllowUserInteraction(true);
+            conn.setConnectTimeout(5 * 1000);
             long startPos = blockSize * (threadId - 1);
             long endPos = blockSize * threadId - 1;
 
@@ -66,7 +68,7 @@ public class DownloadThread extends Thread {
 
         } catch (IOException e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             if (bis != null) {
                 try {
                     bis.close();
@@ -81,6 +83,10 @@ public class DownloadThread extends Thread {
                     e.printStackTrace();
                 }
             }
+            if (conn != null) {
+                conn.disconnect();
+            }
+
         }
     }
 

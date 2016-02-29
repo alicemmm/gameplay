@@ -16,8 +16,10 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.perasia.gameplay.download2.DownloadManager;
+import com.lidroid.xutils.exception.HttpException;
+import com.lidroid.xutils.http.ResponseInfo;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
 public class MainActivity extends AppCompatActivity {
@@ -56,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
         mUrl = "http://192.168.5.110:8080/bunengsi/index.html";
 
         init();
+
     }
 
     private void init() {
@@ -72,10 +75,12 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPageFinished(WebView view, String url) {
+
             }
 
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
+
             }
 
             @Override
@@ -101,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
 //        PushUtils.init(mContext, R.mipmap.ic_launcher);
 //        JiAdUtil.init(mContext, mImageView);
 
+        // TODO: 16/2/29 test download
         mBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -109,25 +115,29 @@ public class MainActivity extends AppCompatActivity {
                 String url = "http://jsp.dx1200.com/apk/2016/dyj_311_3.0.0.apk";
 
                 savePath = CommonUtil.getDownloadSavePath(mContext, url);
+                DownloadManager downloadManager = new DownloadManager(mContext);
 
-                DownloadManager.getInstance().execute(url, 5, savePath, new DownloadManager.DownloadCallBack() {
+                downloadManager.execute(url, savePath, true, new DownloadManager.DownloadCallBack() {
                     @Override
-                    public void onStart(int fileSize) {
-                        Log.e(TAG, "onStart=" + fileSize);
-                        if (CommonUtil.isFileExist(savePath)) {
-                            CommonUtil.deleteFile(savePath);
-                        }
+                    public void onStart() {
+                        Log.e(TAG, "onStart");
+                        Toast.makeText(mContext, R.string.start_download, Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
-                    public void onLoading(int fileSize, int downloadSize) {
-                        Log.e(TAG, "onLoading=" + (downloadSize * 100 / fileSize) + "%");
+                    public void onLoading(long total, long current, boolean isUploading) {
+                        Log.e(TAG, "onLoading=" + (current * 100) / total + "%");
                     }
 
                     @Override
-                    public void onFinished() {
-                        Log.e(TAG, "onFinished=");
+                    public void onSuccess(ResponseInfo<File> responseInfo) {
+                        Log.e(TAG, "onSuccess");
                         CommonUtil.installApk(mContext, savePath);
+                    }
+
+                    @Override
+                    public void onFailure(HttpException error, String msg) {
+                        Log.e(TAG, "onFailure");
                     }
                 });
             }

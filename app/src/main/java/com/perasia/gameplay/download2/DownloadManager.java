@@ -27,11 +27,6 @@ public class DownloadManager {
 
     private static List<String> lists = new ArrayList<>();
 
-
-    private DownloadManager() {
-
-    }
-
     public static DownloadManager getInstance() {
         if (downloadManager == null) {
             downloadManager = new DownloadManager();

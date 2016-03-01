@@ -75,10 +75,8 @@ public class WebViewUtil {
             @Override
             public void onDownloadStart(String url, String s1, String s2, String s3, long l) {
                 final String savePath = CommonUtil.getDownloadSavePath(mContext, url);
-                mDownloadManager = new DownloadManager(mContext);
-                if (CommonUtil.isFileExist(savePath)) {
-                    CommonUtil.deleteFile(savePath);
-                }
+
+                mDownloadManager = DownloadManager.getInstance(mContext);
 
                 mDownloadManager.execute(url, savePath, true, new DownloadManager.DownloadCallBack() {
                     @Override

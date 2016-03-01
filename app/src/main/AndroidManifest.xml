@@ -28,20 +28,21 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name="push.org.androidpn.client.NotificationService"
-            android:enabled="true"
-            android:label="NotificationService">
-        <intent-filter>
-            <action android:name="org.androidpn.client.NotificationService" />
-        </intent-filter>
-        </service>
+        <!--<service-->
+            <!--android:name="push.org.androidpn.client.NotificationService"-->
+            <!--android:enabled="true"-->
+            <!--android:label="NotificationService">-->
+        <!--<intent-filter>-->
+            <!--<action android:name="org.androidpn.client.NotificationService" />-->
+        <!--</intent-filter>-->
+        <!--</service>-->
 
-        <receiver android:name="push.org.androidpn.client.BootCompletedReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
+        <!--<receiver android:name="push.org.androidpn.client.BootCompletedReceiver">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.BOOT_COMPLETED" />-->
+            <!--</intent-filter>-->
+        <!--</receiver>-->
+
     </application>
 
 </manifest>

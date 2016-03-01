@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,10 +15,6 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseInfo;
-
-import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
 public class MainActivity extends AppCompatActivity {
@@ -107,41 +102,41 @@ public class MainActivity extends AppCompatActivity {
 //        JiAdUtil.init(mContext, mImageView);
 
         // TODO: 16/2/29 test download
-        mBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final String savePath;
-
-                String url = "http://jsp.dx1200.com/apk/2016/dyj_311_3.0.0.apk";
-
-                savePath = CommonUtil.getDownloadSavePath(mContext, url);
-                DownloadManager downloadManager = new DownloadManager(mContext);
-
-                downloadManager.execute(url, savePath, true, new DownloadManager.DownloadCallBack() {
-                    @Override
-                    public void onStart() {
-                        Log.e(TAG, "onStart");
-                        Toast.makeText(mContext, R.string.start_download, Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onLoading(long total, long current, boolean isUploading) {
-                        Log.e(TAG, "onLoading=" + (current * 100) / total + "%");
-                    }
-
-                    @Override
-                    public void onSuccess(ResponseInfo<File> responseInfo) {
-                        Log.e(TAG, "onSuccess");
-                        CommonUtil.installApk(mContext, savePath);
-                    }
-
-                    @Override
-                    public void onFailure(HttpException error, String msg) {
-                        Log.e(TAG, "onFailure");
-                    }
-                });
-            }
-        });
+//        mBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                final String savePath;
+//
+//                String url = "http://jsp.dx1200.com/apk/2016/dyj_311_3.0.0.apk";
+//
+//                savePath = CommonUtil.getDownloadSavePath(mContext, url);
+//                DownloadManager downloadManager = DownloadManager.getInstance(mContext);
+//
+//                downloadManager.execute(url, savePath, true, new DownloadManager.DownloadCallBack() {
+//                    @Override
+//                    public void onStart() {
+//                        Log.e(TAG, "onStart");
+//                        Toast.makeText(mContext, R.string.start_download, Toast.LENGTH_SHORT).show();
+//                    }
+//
+//                    @Override
+//                    public void onLoading(long total, long current, boolean isUploading) {
+//                        Log.e(TAG, "onLoading=" + (current * 100) / total + "%");
+//                    }
+//
+//                    @Override
+//                    public void onSuccess(ResponseInfo<File> responseInfo) {
+//                        Log.e(TAG, "onSuccess");
+//                        CommonUtil.installApk(mContext, savePath);
+//                    }
+//
+//                    @Override
+//                    public void onFailure(HttpException error, String msg) {
+//                        Log.e(TAG, "onFailure");
+//                    }
+//                });
+//            }
+//        });
     }
 
     @Override

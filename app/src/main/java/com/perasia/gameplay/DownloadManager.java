@@ -36,18 +36,28 @@ public class DownloadManager {
 
     private Context mContext;
 
+    private static DownloadManager mDownloadManager;
+
     private DownloadCallBack mCallBack;
 
     private String mFilePath;
 
-    private List<String> mDownloadLists = new ArrayList<>();
+    private static List<String> mDownloadLists = new ArrayList<>();
 
     private boolean mShowNotify = false;
     private NotificationManager mNotificationManager;
     private NotificationCompat.Builder mBuilder;
 
-    public DownloadManager(Context context) {
+    private DownloadManager(Context context) {
         mContext = context;
+    }
+
+    public static DownloadManager getInstance(Context context) {
+        if (mDownloadManager == null) {
+            mDownloadManager = new DownloadManager(context);
+        }
+
+        return mDownloadManager;
     }
 
     public void execute(String downloadUrl, String filePath, boolean showNotify, DownloadCallBack callBack) {

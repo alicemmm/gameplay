@@ -17,25 +17,8 @@
         android:id="@+id/main_webview"
         android:layout_below="@+id/webProgress_pb"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-    <ImageView
-        android:id="@+id/main_iv"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:visibility="gone"
-        android:scaleType="fitXY"
-        android:src="@mipmap/ic_launcher" />
-
-
-    <Button
-        android:id="@+id/main_btn"
-        android:layout_width="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:text="download" />
+        android:layout_height="match_parent"
+        android:visibility="visible"
+        />
 
 </RelativeLayout>

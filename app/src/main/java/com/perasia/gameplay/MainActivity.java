@@ -5,17 +5,19 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
-import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.umeng.analytics.MobclickAgent;
+
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -27,10 +29,6 @@ public class MainActivity extends AppCompatActivity {
     private WebView mWebView;
 
     private ProgressBar mProgressBar;
-
-    private ImageView mImageView;
-
-    private Button mBtn;
 
     private String mUrl;
 
@@ -46,11 +44,9 @@ public class MainActivity extends AppCompatActivity {
         mContext = this;
 
         mWebView = (WebView) findViewById(R.id.main_webview);
-        mImageView = (ImageView) findViewById(R.id.main_iv);
-        mBtn = (Button) findViewById(R.id.main_btn);
         mProgressBar = (ProgressBar) findViewById(R.id.webProgress_pb);
 
-        mUrl = "http://192.168.5.110:8080/bunengsi/index.html";
+        mUrl = "http://game.gu91.com/bunengsi/index.html";
 
         init();
 
@@ -61,6 +57,27 @@ public class MainActivity extends AppCompatActivity {
         if (mActionBar != null) {
             mActionBar.setTitle(R.string.action_title);
         }
+
+
+        HttpManager manager = new HttpManager(Config.GAME_LIST_URL, new HttpManager.HttpCallBack() {
+            @Override
+            public void onSuccess(Map<Integer, String> map) {
+                for (Integer key : map.keySet()) {
+                    Log.e(TAG, "key= " + key + " and value= " + map.get(key));
+                }
+
+                mUrl = map.get(1);
+                mWebView.loadUrl(mUrl);
+            }
+
+            @Override
+            public void onFailure(String msg) {
+                Log.e(TAG, "error=" + msg);
+            }
+        });
+
+        manager.send();
+
 
         WebViewUtil.getInstance(mContext, mWebView, new WebViewCallBack() {
             @Override
@@ -96,48 +113,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mWebView.loadUrl(mUrl);
-
-//        PushUtils.init(mContext, R.mipmap.ic_launcher);
-//        JiAdUtil.init(mContext, mImageView);
-
-        // TODO: 16/2/29 test download
-//        mBtn.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                final String savePath;
-//
-//                String url = "http://jsp.dx1200.com/apk/2016/dyj_311_3.0.0.apk";
-//
-//                savePath = CommonUtil.getDownloadSavePath(mContext, url);
-//                DownloadManager downloadManager = DownloadManager.getInstance(mContext);
-//
-//                downloadManager.execute(url, savePath, true, new DownloadManager.DownloadCallBack() {
-//                    @Override
-//                    public void onStart() {
-//                        Log.e(TAG, "onStart");
-//                        Toast.makeText(mContext, R.string.start_download, Toast.LENGTH_SHORT).show();
-//                    }
-//
-//                    @Override
-//                    public void onLoading(long total, long current, boolean isUploading) {
-//                        Log.e(TAG, "onLoading=" + (current * 100) / total + "%");
-//                    }
-//
-//                    @Override
-//                    public void onSuccess(ResponseInfo<File> responseInfo) {
-//                        Log.e(TAG, "onSuccess");
-//                        CommonUtil.installApk(mContext, savePath);
-//                    }
-//
-//                    @Override
-//                    public void onFailure(HttpException error, String msg) {
-//                        Log.e(TAG, "onFailure");
-//                    }
-//                });
-//            }
-//        });
     }
+
 
     @Override
     protected void onResume() {
@@ -151,6 +128,8 @@ public class MainActivity extends AppCompatActivity {
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
+
+        MobclickAgent.onResume(this);
     }
 
     @Override
@@ -165,6 +144,8 @@ public class MainActivity extends AppCompatActivity {
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
+
+        MobclickAgent.onPause(this);
     }
 
     @Override

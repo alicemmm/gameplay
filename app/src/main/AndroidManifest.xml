@@ -43,6 +43,15 @@
             <!--</intent-filter>-->
         <!--</receiver>-->
 
+        <meta-data
+            android:name="UMENG_APPKEY"
+            android:value="56d95acee0f55a7f930025bd" />
+        <meta-data
+            android:name="UMENG_CHANNEL"
+            android:value="umeng" />
+
     </application>
+
+
 
 </manifest>
